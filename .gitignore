@@ -1,0 +1,9 @@
+# Папки збірки CMake
+build/
+cmake-build-*
+
+# Налаштування середовища розробки (CLion)
+.idea/
+
+# Системні файли macOS
+.DS_Store
