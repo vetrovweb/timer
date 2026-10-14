@@ -15,6 +15,12 @@ public:
     TimerWindow(QWidget *parent = nullptr);
     ~TimerWindow() = default;
 
+public slots:
+    void setWindowTransparency(int opacityPercent);
+    void setLockOpacity(bool locked);
+    void setCustomTextColor(const QString &colorHex);
+    void setCustomBgColor(const QString &colorHex);
+
 private slots:
     void add30Seconds();
     void add1Minute();
@@ -25,14 +31,28 @@ private slots:
     void onResetClicked();
     void updateGui();
 
+    void onMenuClicked();
+
 private:
     void switchToSetupMode();
     void updateGuiDisplay();
+    void applyTextOpacity();
+    void updateStyles();
 
     Timer timer;
     int currentSeconds{0};
 
-    QLabel *timeLabel;
+    int currentOpacityPercent{100};
+    bool isOpacityLocked{true};
+    QString currentTextColor{"#17325c"};
+    QString currentBgColor{"#ffffff"};
+
+    QPushButton *menuBtn;
+
+    // Роздільні елементи циферблата для ідеального центрування двокрапки
+    QLabel *minutesLabel;
+    QLabel *colonLabel;
+    QLabel *secondsLabel;
 
     QWidget *setupWidget;
     QPushButton *btnPlus30;

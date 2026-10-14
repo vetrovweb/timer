@@ -1,18 +1,18 @@
-/*styles.qss*/
+/* styles.qss */
 
 TimerWindow {
     background-color: #ffffff;
 }
 
-/* Циферблат таймера */
-QLabel {
+/* Стиль для цифр і двокрапки таймера */
+QLabel#timerDigitLabel, QLabel#timerColonLabel {
     font-size: 102px;
     font-weight: 500;
     color: #17325c;
     background: transparent;
 }
 
-/* Кнопки додавання часу та основні кнопки керування */
+/* Базовий стиль для кнопок додавання часу */
 QPushButton {
     background-color: #ffffff;
     color: #1a73e8;
@@ -32,14 +32,150 @@ QPushButton:pressed {
     background-color: #e8f0fe;
 }
 
-/* Велика кнопка Старт / Пауза / Скидання */
-QPushButton#startBtn, QPushButton#pauseBtn, QPushButton#resetBtn {
-    border-radius: 28px;
-    font-size: 20px;
-}
-
 QPushButton:disabled {
     border: 1px solid #dadce0;
     color: #dadce0;
     background-color: #ffffff;
+}
+
+/* Великі кнопки керування (Старт, Пауза, Скидання) */
+QPushButton#startBtn, QPushButton#pauseBtn, QPushButton#resetBtn {
+    min-width: 110px;
+    max-width: 110px;
+    min-height: 46px;
+    max-height: 46px;
+    border-radius: 23px;
+    font-size: 20px;
+    padding: 0px;
+}
+
+/* Кнопка меню зверху справа */
+QPushButton#menuBtn {
+    background-color: transparent;
+    color: #5f6368;
+    border: none;
+    font-size: 20px;
+    min-width: 36px;
+    max-width: 36px;
+    min-height: 36px;
+    max-height: 36px;
+    border-radius: 10px;
+    padding: 0px;
+    margin: 0px;
+}
+
+QPushButton#menuBtn:hover {
+    background-color: #f1f3f4;
+    color: #1a73e8;
+}
+
+QPushButton#menuBtn:pressed {
+    background-color: #e8f0fe;
+}
+
+/* --- ВІКНО НАЛАШТУВАНЬ --- */
+QDialog#SettingsDialog {
+    background-color: #f8f9fa;
+}
+
+QLabel#SettingsHeaderIcon {
+    font-size: 18px;
+    color: #1a73e8;
+}
+
+QLabel#SettingsTitleLabel {
+    font-size: 16px;
+    font-weight: 600;
+    color: #202124;
+}
+
+QPushButton#SettingsCloseBtn {
+    background-color: transparent;
+    border: none;
+    font-size: 16px;
+    color: #5f6368;
+    min-width: 28px;
+    min-height: 28px;
+    border-radius: 14px;
+    padding: 0px;
+    margin: 0px;
+}
+
+QPushButton#SettingsCloseBtn:hover {
+    background-color: #e8eaed;
+    color: #202124;
+}
+
+QFrame#SettingsCard {
+    background-color: #ffffff;
+    border: 1px solid #dadce0;
+    border-radius: 12px;
+}
+
+QLabel#CardTitle {
+    font-size: 13px;
+    font-weight: 600;
+    color: #202124;
+}
+
+QLabel#CardSubText {
+    font-size: 11px;
+    color: #5f6368;
+}
+
+/* Кружечки палітри */
+QPushButton#settings_ColorCircle {
+    min-width: 22px;
+    max-width: 22px;
+    min-height: 22px;
+    max-height: 22px;
+    border-radius: 11px;
+    border: 2px solid transparent;
+    padding: 0px;
+    margin: 0px;
+}
+
+/* Слайдер прозорості */
+QSlider#SettingsSlider::groove:horizontal {
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 3px;
+}
+
+QSlider#SettingsSlider::sub-page:horizontal {
+    background: #1a73e8;
+    border-radius: 3px;
+}
+
+QSlider#SettingsSlider::handle:horizontal {
+    background: #ffffff;
+    border: 1px solid #b0b0b0;
+    width: 16px;
+    height: 16px;
+    margin: -5px 0;
+    border-radius: 8px;
+}
+
+QSlider#SettingsSlider::handle:horizontal:hover {
+    background: #f8f9fa;
+    border: 1px solid #1a73e8;
+}
+
+QLabel#PercentLabel {
+    font-size: 12px;
+    font-weight: 600;
+    color: #202124;
+}
+
+QFrame#SeparatorLine {
+    color: #eeeeee;
+    background-color: #eeeeee;
+    max-height: 1px;
+}
+
+QCheckBox#SettingsCheckBox {
+    font-size: 12px;
+    font-weight: 500;
+    color: #202124;
+    spacing: 8px;
 }

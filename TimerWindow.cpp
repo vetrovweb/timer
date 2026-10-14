@@ -1,32 +1,68 @@
 #include "TimerWindow.h"
+#include "SettingsWindow.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
 #include <QTimer>
 #include <QStackedLayout>
+#include <QFile>
+#include <QTextStream>
+#include <QColor>
+#include <QStyle>
+#include <QSizePolicy>
 
 TimerWindow::TimerWindow(QWidget *parent) : QWidget(parent) {
     setWindowTitle("C++20 Timer");
     resize(480, 380);
 
-    // Встановлюємо білий фон для головного вікна
-    this->setStyleSheet("background-color: #ffffff;");
+    updateStyles();
 
-    // Головний вертикальний лейаут вікна
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(40, 40, 40, 40);
-    mainLayout->setAlignment(Qt::AlignCenter);
+    mainLayout->setContentsMargins(40, 12, 20, 40);
 
-    // 1. Циферблат часу
-    timeLabel = new QLabel("00:00", this);
-    timeLabel->setAlignment(Qt::AlignCenter);
-    timeLabel->setStyleSheet("font-size: 102px; font-weight: 500; color: #17325c; background: transparent;");
-    mainLayout->addWidget(timeLabel);
+    // --- ШАПКА ВІКНА: Кнопка меню справа ---
+    QHBoxLayout *topBarLayout = new QHBoxLayout();
+    topBarLayout->setContentsMargins(0, 0, 0, 0);
+    topBarLayout->addStretch();
+
+    menuBtn = new QPushButton("☰", this);
+    menuBtn->setObjectName("menuBtn");
+    topBarLayout->addWidget(menuBtn);
+
+    mainLayout->addLayout(topBarLayout);
+    mainLayout->addSpacing(15);
+
+    // --- 1. ЦИФЕРБЛАТ (Симетричні рівні блоки з фіксованим центром) ---
+    QHBoxLayout *timerDisplayLayout = new QHBoxLayout();
+    timerDisplayLayout->setContentsMargins(0, 0, 0, 0);
+    timerDisplayLayout->setSpacing(0);
+    timerDisplayLayout->setAlignment(Qt::AlignCenter);
+
+    minutesLabel = new QLabel("00", this);
+    minutesLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    minutesLabel->setObjectName("timerDigitLabel");
+    minutesLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    colonLabel = new QLabel(":", this);
+    colonLabel->setAlignment(Qt::AlignCenter);
+    colonLabel->setObjectName("timerColonLabel");
+    colonLabel->setFixedWidth(24); // Жорсткий центр для двокрапки
+
+    secondsLabel = new QLabel("00", this);
+    secondsLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    secondsLabel->setObjectName("timerDigitLabel");
+    secondsLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    timerDisplayLayout->addWidget(minutesLabel, 1); // Рівна вага зліва
+    timerDisplayLayout->addWidget(colonLabel, 0);  // Центральний елемент
+    timerDisplayLayout->addWidget(secondsLabel, 1); // Рівна вага справа
+
+    mainLayout->addLayout(timerDisplayLayout);
 
     mainLayout->addSpacing(25);
 
-    // 2. QStackedLayout для перемикання наборів кнопок
+    // --- 2. QStackedLayout для перемикання наборів кнопок ---
     stackedLayout = new QStackedLayout();
     mainLayout->addLayout(stackedLayout);
 
@@ -45,28 +81,6 @@ TimerWindow::TimerWindow(QWidget *parent) : QWidget(parent) {
     btnPlus1Min = new QPushButton("+1:00", this);
     btnPlus5Min = new QPushButton("+5:00", this);
 
-    QString addBtnStyle =
-        "QPushButton {"
-        "   background-color: #ffffff;"
-        "   color: #1a73e8;"
-        "   border: 1px solid #1a73e8;"
-        "   border-radius: 18px;"
-        "   padding: 8px 20px;"
-        "   min-height: 20px;"
-        "   font-size: 14px;"
-        "   font-weight: 500;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: #f6f8fc;"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: #e8f0fe;"
-        "}";
-
-    btnPlus30->setStyleSheet(addBtnStyle);
-    btnPlus1Min->setStyleSheet(addBtnStyle);
-    btnPlus5Min->setStyleSheet(addBtnStyle);
-
     addButtonsLayout->addWidget(btnPlus30);
     addButtonsLayout->addWidget(btnPlus1Min);
     addButtonsLayout->addWidget(btnPlus5Min);
@@ -75,28 +89,7 @@ TimerWindow::TimerWindow(QWidget *parent) : QWidget(parent) {
     setupLayout->addSpacing(35);
 
     startBtn = new QPushButton("▶", this);
-    startBtn->setFixedHeight(56);
-    startBtn->setFixedWidth(160);
-    startBtn->setStyleSheet(
-        "QPushButton {"
-        "   background-color: #ffffff;"
-        "   color: #1a73e8;"
-        "   border: 1px solid #1a73e8;"
-        "   border-radius: 28px;"
-        "   font-size: 20px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: #f6f8fc;"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: #e8f0fe;"
-        "}"
-        "QPushButton:disabled {"
-        "   border: 1px solid #dadce0;"
-        "   color: #dadce0;"
-        "   background-color: #ffffff;"
-        "}"
-    );
+    startBtn->setObjectName("startBtn");
     startBtn->setEnabled(false);
     setupLayout->addWidget(startBtn, 0, Qt::AlignCenter);
 
@@ -111,27 +104,10 @@ TimerWindow::TimerWindow(QWidget *parent) : QWidget(parent) {
     runningLayout->setSpacing(20);
 
     pauseBtn = new QPushButton("⏸", this);
+    pauseBtn->setObjectName("pauseBtn");
+
     resetBtn = new QPushButton("↺", this);
-
-    QString controlBtnStyle =
-        "QPushButton {"
-        "   background-color: #ffffff;"
-        "   color: #1a73e8;"
-        "   border: 1px solid #1a73e8;"
-        "   border-radius: 28px;"
-        "   font-size: 22px;"
-        "   min-width: 110px;"
-        "   min-height: 56px;"
-        "}"
-        "QPushButton:hover {"
-        "   background-color: #f6f8fc;"
-        "}"
-        "QPushButton:pressed {"
-        "   background-color: #e8f0fe;"
-        "}";
-
-    pauseBtn->setStyleSheet(controlBtnStyle);
-    resetBtn->setStyleSheet(controlBtnStyle);
+    resetBtn->setObjectName("resetBtn");
 
     runningLayout->addWidget(pauseBtn);
     runningLayout->addWidget(resetBtn);
@@ -140,7 +116,7 @@ TimerWindow::TimerWindow(QWidget *parent) : QWidget(parent) {
 
     stackedLayout->setCurrentIndex(0);
 
-    // Таймер оновлення з максимально точним реагуванням
+    // Таймер оновлення
     uiTimer = new QTimer(this);
     uiTimer->setInterval(1000);
 
@@ -153,6 +129,8 @@ TimerWindow::TimerWindow(QWidget *parent) : QWidget(parent) {
     connect(pauseBtn, &QPushButton::clicked, this, &TimerWindow::onPauseClicked);
     connect(resetBtn, &QPushButton::clicked, this, &TimerWindow::onResetClicked);
     connect(uiTimer, &QTimer::timeout, this, &TimerWindow::updateGui);
+
+    connect(menuBtn, &QPushButton::clicked, this, &TimerWindow::onMenuClicked);
 
     updateGuiDisplay();
 }
@@ -181,7 +159,6 @@ void TimerWindow::onStartClicked() {
     stackedLayout->setCurrentIndex(1);
     pauseBtn->setText("⏸");
 
-    // Миттєве оновлення екрану без очікування першого тіка таймера
     updateGui();
     uiTimer->start();
 }
@@ -205,12 +182,114 @@ void TimerWindow::onResetClicked() {
     updateGuiDisplay();
 }
 
+void TimerWindow::onMenuClicked() {
+    SettingsWindow settingsDlg(currentOpacityPercent, isOpacityLocked, currentTextColor, currentBgColor, this);
+
+    connect(&settingsDlg, &SettingsWindow::opacityChanged, this, &TimerWindow::setWindowTransparency);
+    connect(&settingsDlg, &SettingsWindow::lockOpacityToggled, this, &TimerWindow::setLockOpacity);
+    connect(&settingsDlg, &SettingsWindow::textColorChanged, this, &TimerWindow::setCustomTextColor);
+    connect(&settingsDlg, &SettingsWindow::bgColorChanged, this, &TimerWindow::setCustomBgColor);
+
+    settingsDlg.exec();
+}
+
+void TimerWindow::setWindowTransparency(int opacityPercent) {
+    currentOpacityPercent = opacityPercent;
+    qreal opacity = static_cast<qreal>(opacityPercent) / 100.0;
+    setWindowOpacity(opacity);
+    applyTextOpacity();
+}
+
+void TimerWindow::setLockOpacity(bool locked) {
+    isOpacityLocked = locked;
+    applyTextOpacity();
+}
+
+void TimerWindow::setCustomTextColor(const QString &colorHex) {
+    currentTextColor = colorHex;
+    updateStyles();
+    applyTextOpacity();
+}
+
+void TimerWindow::setCustomBgColor(const QString &colorHex) {
+    currentBgColor = colorHex;
+    updateStyles();
+}
+
+void TimerWindow::updateStyles() {
+    QFile styleFile(":/styles.qss");
+    QString baseStyles = "";
+    if (styleFile.open(QFile::ReadOnly | QFile::Text)) {
+        QTextStream stream(&styleFile);
+        baseStyles = stream.readAll();
+        styleFile.close();
+    }
+
+    QColor bgCol(currentBgColor);
+    bool isDarkBg = (bgCol.red() * 0.299 + bgCol.green() * 0.587 + bgCol.blue() * 0.114) < 128;
+    QString menuHoverBg = isDarkBg ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)";
+    QString menuPressedBg = isDarkBg ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.15)";
+
+    QString dynamicRules = QString(
+        R"(
+        TimerWindow {
+            background-color: %1;
+        }
+        QPushButton {
+            color: %2;
+            border: 1px solid %2;
+        }
+        QPushButton:hover {
+            background-color: rgba(26, 115, 232, 0.08);
+        }
+        QPushButton:disabled {
+            border: 1px solid #dadce0;
+            color: #dadce0;
+            background-color: %1;
+        }
+        QPushButton#menuBtn {
+            background-color: transparent;
+            color: %2;
+            border: none;
+        }
+        QPushButton#menuBtn:hover {
+            background-color: %3;
+            color: %2;
+        }
+        QPushButton#menuBtn:pressed {
+            background-color: %4;
+            color: %2;
+        }
+        )"
+    ).arg(currentBgColor).arg(currentTextColor).arg(menuHoverBg).arg(menuPressedBg);
+
+    setStyleSheet(baseStyles + "\n" + dynamicRules);
+}
+
+void TimerWindow::applyTextOpacity() {
+    QString labelStyle;
+    if (isOpacityLocked) {
+        labelStyle = QString("color: %1; font-size: 102px; font-weight: 500; background: transparent;").arg(currentTextColor);
+    } else {
+        qreal opacity = static_cast<qreal>(currentOpacityPercent) / 100.0;
+        QColor col(currentTextColor);
+        QString rgbaColor = QString("rgba(%1, %2, %3, %4)").arg(col.red()).arg(col.green()).arg(col.blue()).arg(opacity);
+        labelStyle = QString("color: %1; font-size: 102px; font-weight: 500; background: transparent;").arg(rgbaColor);
+    }
+
+    minutesLabel->setStyleSheet(labelStyle);
+    colonLabel->setStyleSheet(labelStyle);
+    secondsLabel->setStyleSheet(labelStyle);
+}
+
 void TimerWindow::updateGui() {
     auto remaining = timer.remaining_seconds();
 
     if (remaining <= 0 && !timer.is_running()) {
         uiTimer->stop();
-        timeLabel->setText("Час вийшов!");
+        minutesLabel->setText("00");
+        colonLabel->setText(":");
+        secondsLabel->setText("00");
         switchToSetupMode();
         currentSeconds = 0;
         updateGuiDisplay();
@@ -220,22 +299,19 @@ void TimerWindow::updateGui() {
     int minutes = remaining / 60;
     int secs = remaining % 60;
 
-    QString timeStr = QString("%1:%2")
-        .arg(minutes, 2, 10, QChar('0'))
-        .arg(secs, 2, 10, QChar('0'));
-
-    timeLabel->setText(timeStr);
+    minutesLabel->setText(QString("%1").arg(minutes, 2, 10, QChar('0')));
+    colonLabel->setText(":");
+    secondsLabel->setText(QString("%1").arg(secs, 2, 10, QChar('0')));
 }
 
 void TimerWindow::updateGuiDisplay() {
     int minutes = currentSeconds / 60;
     int secs = currentSeconds % 60;
 
-    QString timeStr = QString("%1:%2")
-        .arg(minutes, 2, 10, QChar('0'))
-        .arg(secs, 2, 10, QChar('0'));
+    minutesLabel->setText(QString("%1").arg(minutes, 2, 10, QChar('0')));
+    colonLabel->setText(":");
+    secondsLabel->setText(QString("%1").arg(secs, 2, 10, QChar('0')));
 
-    timeLabel->setText(timeStr);
     startBtn->setEnabled(currentSeconds > 0);
 }
 
