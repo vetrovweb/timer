@@ -1,0 +1,45 @@
+/*styles.qss*/
+
+TimerWindow {
+    background-color: #ffffff;
+}
+
+/* Циферблат таймера */
+QLabel {
+    font-size: 102px;
+    font-weight: 500;
+    color: #17325c;
+    background: transparent;
+}
+
+/* Кнопки додавання часу та основні кнопки керування */
+QPushButton {
+    background-color: #ffffff;
+    color: #1a73e8;
+    border: 1px solid #1a73e8;
+    border-radius: 18px;
+    padding: 8px 20px;
+    min-height: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+QPushButton:hover {
+    background-color: #f6f8fc;
+}
+
+QPushButton:pressed {
+    background-color: #e8f0fe;
+}
+
+/* Велика кнопка Старт / Пауза / Скидання */
+QPushButton#startBtn, QPushButton#pauseBtn, QPushButton#resetBtn {
+    border-radius: 28px;
+    font-size: 20px;
+}
+
+QPushButton:disabled {
+    border: 1px solid #dadce0;
+    color: #dadce0;
+    background-color: #ffffff;
+}

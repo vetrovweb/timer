@@ -1,31 +1,28 @@
-//
-// Created by Кирило Вєтров on 12.10.2026.
-//
-
-#ifndef TIMER_TIMER_H
-#define TIMER_TIMER_H
+#pragma once
 
 #include <atomic>
+#include <thread>
 
 class Timer {
-private:
-    std::atomic<bool> running{false};
-    std::atomic<bool> paused{false};
-    int total_seconds{0};
-    int remaining_seconds{0};
-
-    void print_time() const;
-
 public:
-    explicit Timer(int seconds);
+    Timer();
+    ~Timer();
 
+    void set_duration(int seconds);
     void start();
     void pause();
     void resume();
-    void stop();
     void reset();
 
-    int get_remaining() const;
-};
+    bool is_running() const;
+    int remaining_seconds() const;
 
-#endif //TIMER_TIMER_H
+private:
+    void countdown_loop();
+
+    int total_seconds{0};
+    std::atomic<int> current_remaining{0};
+    std::atomic<bool> running{false};
+    std::atomic<bool> paused{false};
+    std::thread worker_thread;
+};
