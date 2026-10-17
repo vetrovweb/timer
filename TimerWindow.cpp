@@ -118,7 +118,7 @@ TimerWindow::TimerWindow(QWidget *parent) : QWidget(parent) {
 
     // Таймер оновлення
     uiTimer = new QTimer(this);
-    uiTimer->setInterval(1000);
+    uiTimer->setInterval(100);
 
     // Підключення сигналів і слотів
     connect(btnPlus30, &QPushButton::clicked, this, &TimerWindow::add30Seconds);

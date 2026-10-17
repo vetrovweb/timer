@@ -1,66 +1,54 @@
 #include "Timer.h"
-#include <chrono>
+#include <algorithm>
 
-Timer::Timer() = default;
 
-Timer::~Timer() {
-    reset();
-}
-
-void Timer::set_duration(int seconds) {
-    total_seconds = seconds;
-    current_remaining = seconds;
+// Блок 1
+// Задати, запустити, скинути
+void Timer::set_duration(int secs) {
+    total = std::chrono::seconds(secs);
+    state = State::Idle;
 }
 
 void Timer::start() {
-    if (running) return;
-
-    running = true;
-    paused = false;
-
-    if (worker_thread.joinable()) {
-        worker_thread.join();
-    }
-
-    worker_thread = std::thread(&Timer::countdown_loop, this);
-}
-
-void Timer::pause() {
-    paused = true;
-}
-
-void Timer::resume() {
-    paused = false;
+    if (is_running()) return;                // захист від подвійного старту
+    deadline = Clock::now() + total;
+    state = State::Running;
 }
 
 void Timer::reset() {
-    running = false;
-    paused = false;
-
-    if (worker_thread.joinable()) {
-        worker_thread.join();
-    }
-
-    current_remaining = total_seconds;
+    state = State::Idle;
 }
 
+// Блок 2
+// Пауза й продовження
+void Timer::pause() {
+    if (state != State::Running) return;
+    paused_remaining = std::max(deadline - Clock::now(), Clock::duration::zero());
+    state = State::Paused;
+}
+
+void Timer::resume() {
+    if (state != State::Paused) return;
+    deadline = Clock::now() + paused_remaining;
+    state = State::Running;
+}
+
+// Блок 3
+// Запитати стан
 bool Timer::is_running() const {
-    return running && !paused;
+    return state == State::Running && Clock::now() < deadline;
 }
 
 int Timer::remaining_seconds() const {
-    return current_remaining.load();
-}
+    Clock::duration left{};
 
-void Timer::countdown_loop() {
-    while (running && current_remaining > 0) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-
-        if (running && !paused) {
-            if (current_remaining > 0) {
-                current_remaining--;
-            }
-        }
+    switch (state) {
+        case State::Idle:    left = total;                   break;
+        case State::Paused:  left = paused_remaining;        break;
+        case State::Running: left = deadline - Clock::now(); break;
     }
-    running = false;
+
+    if (left < Clock::duration::zero()) left = Clock::duration::zero();
+
+    return static_cast<int>(std::chrono::ceil<std::chrono::seconds>(left).count());
 }

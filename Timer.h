@@ -1,14 +1,10 @@
 #pragma once
 
-#include <atomic>
-#include <thread>
+#include <chrono>
 
 class Timer {
 public:
-    Timer();
-    ~Timer();
-
-    void set_duration(int seconds);
+    void set_duration(int secs);
     void start();
     void pause();
     void resume();
@@ -18,11 +14,11 @@ public:
     int remaining_seconds() const;
 
 private:
-    void countdown_loop();
+    using Clock = std::chrono::steady_clock;        // краще за system_clock (він рахує системний час)
+    enum class State { Idle, Running, Paused };
 
-    int total_seconds{0};
-    std::atomic<int> current_remaining{0};
-    std::atomic<bool> running{false};
-    std::atomic<bool> paused{false};
-    std::thread worker_thread;
+    State state{State::Idle};
+    Clock::duration total{};                        // скільки задали
+    Clock::duration paused_remaining{};             // залишок, збережений на паузі
+    Clock::time_point deadline{};                   // момент закінчення (коли таймер іде)
 };
